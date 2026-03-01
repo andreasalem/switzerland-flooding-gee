@@ -29,23 +29,16 @@
       padding: 0 20px;
       gap: 16px;
     }
-    .bbc-logo {
-      display: flex; gap: 2px;
-    }
-    .bbc-logo span {
-      display: inline-block;
-      width: 22px; height: 22px;
-      background: #fff;
-      color: #000;
-      font-size: 0.78rem;
-      font-weight: 900;
-      text-align: center;
-      line-height: 22px;
+    .site-brand {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.02em;
     }
     .topbar-section {
       font-size: 0.72rem;
-      font-weight: 600;
-      color: #ccc;
+      font-weight: 400;
+      color: #999;
       padding-left: 16px;
       border-left: 1px solid #333;
     }
@@ -150,18 +143,10 @@
       font-size: 0.72rem;
       color: #666;
     }
-    .bbc-small {
-      display: flex; gap: 1px;
-    }
-    .bbc-small span {
-      display: inline-block;
-      width: 16px; height: 16px;
-      background: #000;
-      color: #fff;
-      font-size: 0.55rem;
-      font-weight: 900;
-      text-align: center;
-      line-height: 16px;
+    .map-credit {
+      font-size: 0.68rem;
+      color: #999;
+      font-style: italic;
     }
 
     /* ── Article body text below map ── */
@@ -239,10 +224,8 @@
 
 <!-- Top bar -->
 <div class="topbar">
-  <div class="bbc-logo">
-    <span>B</span><span>B</span><span>C</span>
-  </div>
-  <span class="topbar-section">News · Earth</span>
+  <span class="site-brand">Switzerland Natural Hazards</span>
+  <span class="topbar-section">Maintained by Andrea Salem · <a href="https://github.com/andreasalem/switzerland-flooding-gee" target="_blank" style="color:#6af;text-decoration:none">GitHub</a></span>
 </div>
 
 <!-- Article -->
@@ -265,9 +248,7 @@
   <!-- Source credit -->
   <div class="map-footer">
     <span class="source">Source: ESA Sentinel-1 · Google Earth Engine · JRC</span>
-    <div class="bbc-small">
-      <span>B</span><span>B</span><span>C</span>
-    </div>
+    <span class="map-credit">Andrea Salem · switzerland-flooding-gee</span>
   </div>
 
   <!-- Article body -->
