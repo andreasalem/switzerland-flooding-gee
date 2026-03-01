@@ -132,7 +132,7 @@
 <div id="map"></div>
 
 <script>
-  const map = L.map("map", { center: [47.1, 7.75], zoom: 9, zoomControl: true });
+  const map = L.map("map", { center: [47.05, 8.05], zoom: 11, zoomControl: true });
 
   // Basemap — used on BOTH sides as the base
   const basemap = L.tileLayer(
@@ -169,7 +169,7 @@
       // The basemap stays visible on both sides since it's not clipped
       L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
 
-      map.fitBounds(afterLayer.getBounds());
+      // Don't fit to full raster bounds — stay zoomed in on flood areas
       document.getElementById("loading").style.display = "none";
     })
     .catch(err => {
