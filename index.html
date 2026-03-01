@@ -303,8 +303,8 @@
 
 <script>
   const map = L.map("map", {
-    center: [47.05, 7.95],
-    zoom: 10,
+    center: [46.76, 8.03],   // Brienz — most severely flooded area
+    zoom: 12,
     zoomControl: true,
     attributionControl: false,
     scrollWheelZoom: true,
@@ -319,8 +319,8 @@
   // Location labels — BBC white box style
   const isMobile = window.innerWidth < 600;
 
-  // On mobile zoom out slightly to show context
-  if (isMobile) map.setView([47.05, 7.95], 9);
+  // On mobile zoom out slightly to show more context
+  if (isMobile) map.setView([46.76, 8.03], 11);
 
   const locations = [
     { name: "Aare River",  lat: 47.00, lng: 7.60, mobile: false },
@@ -371,6 +371,15 @@
 
       // beforeLayer = LEFT (clean), afterLayer = RIGHT (flood overlay)
       L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
+
+      // Fix: prevent map panning when dragging the swipe bar
+      const range = document.querySelector('.leaflet-sbs-range');
+      if (range) {
+        range.addEventListener('mousedown',  () => map.dragging.disable());
+        range.addEventListener('touchstart', () => map.dragging.disable(), { passive: true });
+        document.addEventListener('mouseup',  () => map.dragging.enable());
+        document.addEventListener('touchend', () => map.dragging.enable());
+      }
 
       document.getElementById("loading").style.display = "none";
     })
