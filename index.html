@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Switzerland Flood Detection 2021 · Sentinel-1 SAR</title>
+  <title>Switzerland floods: Satellite images show extent of flooding</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -12,217 +12,205 @@
   <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
   <style>
-    /* ── WSL colour palette ── */
-    :root {
-      --wsl-blue:    #005EA6;
-      --wsl-blue-lt: #e8f1f9;
-      --wsl-red:     #C8002A;
-      --wsl-grey:    #f4f4f4;
-      --wsl-border:  #d0d0d0;
-      --text:        #1a1a1a;
-      --text-muted:  #5a5a5a;
-    }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
-      font-size: 14px;
       background: #fff;
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+      color: #111;
     }
 
-    /* ── Header ── */
-    header {
-      background: var(--wsl-blue);
-      color: #fff;
-      padding: 0 24px;
-      display: flex;
-      align-items: stretch;
-      justify-content: space-between;
-      flex-shrink: 0;
-      height: 52px;
-    }
-    .header-brand {
-      display: flex; align-items: center; gap: 12px;
-      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.02em;
-    }
-    .header-brand .wsl-logo {
-      background: #fff;
-      color: var(--wsl-blue);
-      font-weight: 900;
-      font-size: 0.75rem;
-      padding: 3px 7px;
-      border-radius: 2px;
-      letter-spacing: 0.04em;
-    }
-    .header-brand .divider { opacity: 0.4; font-weight: 300; font-size: 1.1rem; }
-    .header-nav {
-      display: flex; align-items: center; gap: 0;
-    }
-    .header-nav a {
-      color: rgba(255,255,255,0.75);
-      font-size: 0.72rem;
-      text-decoration: none;
-      padding: 0 14px;
-      height: 100%;
-      display: flex; align-items: center;
-      border-left: 1px solid rgba(255,255,255,0.12);
-      transition: color 0.15s, background 0.15s;
-    }
-    .header-nav a:hover { color: #fff; background: rgba(255,255,255,0.08); }
-
-    /* ── Sub-header / breadcrumb ── */
-    .subheader {
-      background: var(--wsl-grey);
-      border-bottom: 1px solid var(--wsl-border);
-      padding: 8px 24px;
+    /* ── BBC-style top bar ── */
+    .topbar {
+      background: #0d0d0d;
+      height: 44px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
+      padding: 0 20px;
+      gap: 16px;
     }
-    .subheader h1 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text);
+    .bbc-logo {
+      display: flex; gap: 2px;
     }
-    .subheader p {
+    .bbc-logo span {
+      display: inline-block;
+      width: 22px; height: 22px;
+      background: #fff;
+      color: #000;
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-align: center;
+      line-height: 22px;
+    }
+    .topbar-section {
       font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-top: 1px;
-    }
-    .badge-row { display: flex; gap: 6px; align-items: center; }
-    .badge {
-      font-size: 0.65rem; font-weight: 600;
-      padding: 2px 9px; border-radius: 2px;
-      border: 1px solid var(--wsl-border);
-      color: var(--text-muted);
-      background: #fff;
-    }
-    .badge-primary { background: var(--wsl-blue); color: #fff; border-color: var(--wsl-blue); }
-
-    /* ── Main layout ── */
-    .main { display: flex; flex: 1; overflow: hidden; }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      width: 270px;
-      flex-shrink: 0;
-      background: #fff;
-      border-right: 1px solid var(--wsl-border);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
+      font-weight: 600;
+      color: #ccc;
+      padding-left: 16px;
+      border-left: 1px solid #333;
     }
 
-    .sidebar-section {
-      padding: 16px 18px;
-      border-bottom: 1px solid var(--wsl-border);
+    /* ── Article container ── */
+    .article {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
     }
-    .sidebar-section h3 {
-      font-size: 0.68rem;
+
+    .article h1 {
+      font-size: 1.6rem;
       font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--wsl-blue);
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 2px solid var(--wsl-blue-lt);
+      line-height: 1.25;
+      color: #111;
+      margin-bottom: 8px;
     }
-    .sidebar-section p {
-      font-size: 0.76rem;
-      line-height: 1.6;
-      color: var(--text-muted);
-    }
-    .sidebar-section p + p { margin-top: 8px; }
-    .sidebar-section p strong { color: var(--text); font-weight: 600; }
 
-    /* Stats */
-    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .stat-box {
-      background: var(--wsl-grey);
-      border: 1px solid var(--wsl-border);
-      border-left: 3px solid var(--wsl-blue);
-      padding: 8px 10px;
+    .article .deck {
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.5;
+      margin-bottom: 20px;
     }
-    .stat-val   { font-size: 1.05rem; font-weight: 700; color: var(--wsl-blue); }
-    .stat-label { font-size: 0.62rem; color: var(--text-muted); margin-top: 1px; }
 
-    /* Legend */
-    .legend-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      margin-bottom: 10px;
+    /* ── Dates row above map ── */
+    .dates-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
     }
-    .legend-swatch {
-      width: 14px; height: 14px;
-      flex-shrink: 0; margin-top: 2px;
+    .dates-row .date {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #111;
     }
-    .legend-text { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; }
-    .legend-text strong { color: var(--text); display: block; font-weight: 600; }
 
-    /* Method steps */
-    .method-step { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
-    .step-num {
-      width: 20px; height: 20px;
-      background: var(--wsl-blue); color: #fff;
-      font-size: 0.65rem; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin-top: 1px;
+    /* ── Map container ── */
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      border: 1px solid #ddd;
+      overflow: hidden;
     }
-    .step-text { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; }
-    .step-text strong { color: var(--text); font-weight: 600; }
-
-    /* Footer */
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 12px 18px;
-      background: var(--wsl-grey);
-      border-top: 1px solid var(--wsl-border);
-      font-size: 0.67rem;
-      color: var(--text-muted);
-      line-height: 1.7;
-    }
-    .sidebar-footer a { color: var(--wsl-blue); text-decoration: none; }
-    .sidebar-footer a:hover { text-decoration: underline; }
-
-    /* ── Map ── */
-    .map-wrap { flex: 1; position: relative; overflow: hidden; }
     #map { width: 100%; height: 100%; }
 
-    .swipe-label {
-      position: absolute; top: 14px; z-index: 999;
-      font-size: 0.7rem; font-weight: 700;
-      padding: 4px 12px;
-      pointer-events: none;
-      background: rgba(255,255,255,0.92);
-      border: 1px solid var(--wsl-border);
-      color: var(--text);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-    }
-    .swipe-label.left  { left: 12px; border-left: 3px solid var(--wsl-blue); }
-    .swipe-label.right { right: 12px; border-left: 3px solid var(--wsl-red); }
-
-    .hint {
-      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      z-index: 999;
-      background: rgba(255,255,255,0.9);
-      border: 1px solid var(--wsl-border);
-      padding: 5px 16px;
-      font-size: 0.68rem; color: var(--text-muted);
-      pointer-events: none; white-space: nowrap;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
+    /* ── Big circular swipe handle — BBC style ── */
     .leaflet-sbs-divider {
-      background: var(--wsl-blue) !important;
-      width: 2px !important;
-      box-shadow: 0 0 0 1px rgba(0,94,166,0.3) !important;
+      background: rgba(0,0,0,0.25) !important;
+      width: 1px !important;
+      box-shadow: none !important;
     }
+    /* Custom circular handle overlaid on divider */
+    .leaflet-sbs-range {
+      cursor: ew-resize !important;
+    }
+    .leaflet-sbs-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 48px; height: 48px;
+      background: #fff;
+      border-radius: 50%;
+      cursor: ew-resize;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: none;
+    }
+    .leaflet-sbs-range::-moz-range-thumb {
+      width: 48px; height: 48px;
+      background: #fff;
+      border-radius: 50%;
+      cursor: ew-resize;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: none;
+    }
+
+    /* ── Location label style — BBC white boxes ── */
+    .leaflet-tooltip.location-label {
+      background: rgba(255,255,255,0.95) !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2) !important;
+      font-size: 0.72rem !important;
+      font-weight: 600 !important;
+      color: #111 !important;
+      padding: 3px 8px !important;
+    }
+    .leaflet-tooltip.location-label::before {
+      display: none !important;
+    }
+
+    /* ── Source credit below map ── */
+    .map-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-top: 1px solid #ddd;
+      margin-bottom: 20px;
+    }
+    .map-footer .source {
+      font-size: 0.72rem;
+      color: #666;
+    }
+    .bbc-small {
+      display: flex; gap: 1px;
+    }
+    .bbc-small span {
+      display: inline-block;
+      width: 16px; height: 16px;
+      background: #000;
+      color: #fff;
+      font-size: 0.55rem;
+      font-weight: 900;
+      text-align: center;
+      line-height: 16px;
+    }
+
+    /* ── Article body text below map ── */
+    .article-body p {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: #333;
+      margin-bottom: 14px;
+    }
+    .article-body p strong { color: #111; }
+
+    .method-note {
+      background: #f5f5f5;
+      border-left: 3px solid #ccc;
+      padding: 12px 16px;
+      margin: 16px 0;
+      font-size: 0.8rem;
+      color: #555;
+      line-height: 1.6;
+    }
+    .method-note strong { color: #111; display: block; margin-bottom: 4px; }
+
+    /* ── Responsive / Mobile ── */
+    @media (max-width: 600px) {
+      .topbar { height: 38px; padding: 0 14px; }
+      .bbc-logo span { width: 18px; height: 18px; font-size: 0.65rem; line-height: 18px; }
+      .topbar-section { font-size: 0.65rem; }
+
+      .article { padding: 16px 14px 28px; }
+      .article h1 { font-size: 1.15rem; }
+      .article .deck { font-size: 0.8rem; margin-bottom: 14px; }
+      .dates-row .date { font-size: 0.78rem; }
+
+      .map-container { height: 56vw; min-height: 240px; max-height: 380px; }
+
+      .article-body p { font-size: 0.82rem; }
+      .method-note { font-size: 0.75rem; }
+
+      /* Hide less important labels on small screens */
+      .label-secondary { display: none; }
+    }
+
+    @media (min-width: 601px) and (max-width: 900px) {
+      .map-container { height: 380px; }
+      .article h1 { font-size: 1.35rem; }
+    }
+
+    /* Touch: prevent page scroll when swiping the range input */
+    .leaflet-sbs-range { touch-action: none; }
 
     /* Loading */
     #loading {
@@ -231,12 +219,11 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 12px;
     }
-    #loading h2 { color: var(--wsl-blue); font-size: 0.9rem; font-weight: 600; }
-    #loading p  { color: var(--text-muted); font-size: 0.75rem; }
+    #loading p { color: #666; font-size: 0.8rem; }
     .spinner {
-      width: 30px; height: 30px;
-      border: 3px solid var(--wsl-grey);
-      border-top-color: var(--wsl-blue);
+      width: 28px; height: 28px;
+      border: 3px solid #eee;
+      border-top-color: #111;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -247,152 +234,128 @@
 
 <div id="loading">
   <div class="spinner"></div>
-  <h2>Loading flood data…</h2>
-  <p>Fetching Sentinel-1 SAR results</p>
+  <p>Loading satellite data…</p>
 </div>
 
-<!-- Header -->
-<header>
-  <div class="header-brand">
-    <span class="wsl-logo">WSL</span>
-    <span class="divider">/</span>
-    <span>Natural Hazards · Flood Detection</span>
+<!-- Top bar -->
+<div class="topbar">
+  <div class="bbc-logo">
+    <span>B</span><span>B</span><span>C</span>
   </div>
-  <nav class="header-nav">
-    <a href="https://www.wsl.ch/en/natural-hazards/floods/" target="_blank">WSL Floods</a>
-    <a href="https://github.com/andreasalem/switzerland-flooding-gee" target="_blank">GitHub</a>
-    <a href="https://code.earthengine.google.com" target="_blank">Earth Engine</a>
-  </nav>
-</header>
-
-<!-- Sub-header -->
-<div class="subheader">
-  <div>
-    <h1>Flood Extent Mapping — Switzerland, July 2021</h1>
-    <p>Sentinel-1 SAR change detection · Aare / Reuss basin · Google Earth Engine</p>
-  </div>
-  <div class="badge-row">
-    <span class="badge badge-primary">SAR Radar</span>
-    <span class="badge">July 2021</span>
-    <span class="badge">100 m resolution</span>
-  </div>
+  <span class="topbar-section">News · Earth</span>
 </div>
 
-<div class="main">
+<!-- Article -->
+<div class="article">
 
-  <!-- Sidebar -->
-  <div class="sidebar">
+  <h1>Floods near Bern and Luzern</h1>
+  <p class="deck">Drag the button left to see flooding along the Aare and Reuss rivers in Switzerland during the July 2021 flood event.</p>
 
-    <div class="sidebar-section">
-      <h3>About</h3>
-      <p>This map shows <strong>flood extent detected from satellite radar</strong> during the July 2021 floods in central Switzerland, which caused severe damage along the Aare and Reuss rivers.</p>
-      <p>Drag the <strong>vertical bar</strong> left and right to compare the landscape before flooding (June 2021) with the detected flood area (July 2021).</p>
-    </div>
-
-    <div class="sidebar-section">
-      <h3>Key figures</h3>
-      <div class="stat-grid">
-        <div class="stat-box">
-          <div class="stat-val">60.8 km²</div>
-          <div class="stat-label">Detected flood area</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">Jul 12–22</div>
-          <div class="stat-label">Event period</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">100 m</div>
-          <div class="stat-label">Spatial resolution</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">−3 dB</div>
-          <div class="stat-label">Detection threshold</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sidebar-section">
-      <h3>Map legend</h3>
-      <div class="legend-item">
-        <div class="legend-swatch" style="background:#1e78dc"></div>
-        <div class="legend-text">
-          <strong>Detected flood extent</strong>
-          Areas where radar backscatter dropped &gt;3 dB, indicating surface water. Permanent water bodies are excluded.
-        </div>
-      </div>
-      <div class="legend-item">
-        <div class="legend-swatch" style="background:#ccc; border:1px solid #bbb"></div>
-        <div class="legend-text">
-          <strong>No significant change</strong>
-          Land surface with no detectable flooding between pre- and post-flood images.
-        </div>
-      </div>
-    </div>
-
-    <div class="sidebar-section">
-      <h3>Detection method</h3>
-      <div class="method-step">
-        <div class="step-num">1</div>
-        <div class="step-text"><strong>Pre-flood composite</strong> — Sentinel-1 VV backscatter, June 2021. Dry land reflects radar signal strongly.</div>
-      </div>
-      <div class="method-step">
-        <div class="step-num">2</div>
-        <div class="step-text"><strong>Post-flood composite</strong> — July 12–22, 2021. Flooded surfaces scatter radar away from the sensor, appearing dark.</div>
-      </div>
-      <div class="method-step">
-        <div class="step-num">3</div>
-        <div class="step-text"><strong>Change detection</strong> — Pixels with a drop &gt;3 dB in VV backscatter are classified as flooded.</div>
-      </div>
-      <div class="method-step">
-        <div class="step-num">4</div>
-        <div class="step-text"><strong>Refinement</strong> — Permanent water bodies masked using JRC Global Surface Water dataset.</div>
-      </div>
-    </div>
-
-    <div class="sidebar-section">
-      <h3>Data sources</h3>
-      <p>
-        <strong>Sentinel-1 GRD</strong> — ESA Copernicus Programme, processed via Google Earth Engine.<br><br>
-        <strong>JRC Global Surface Water</strong> — Joint Research Centre, European Commission.<br><br>
-        <strong>Basemap</strong> — Esri World Imagery © NASA / USGS.
-      </p>
-    </div>
-
-    <div class="sidebar-footer">
-      Developed using <a href="https://earthengine.google.com" target="_blank">Google Earth Engine</a> and
-      <a href="https://courses.spatialthoughts.com/end-to-end-gee.html" target="_blank">Spatial Thoughts GEE course</a>.<br>
-      <a href="https://github.com/andreasalem/switzerland-flooding-gee" target="_blank">View source on GitHub</a> ·
-      Data: ESA / JRC / Esri
-    </div>
-
+  <!-- Dates above map -->
+  <div class="dates-row">
+    <span class="date">June 2021</span>
+    <span class="date">July 2021</span>
   </div>
 
   <!-- Map -->
-  <div class="map-wrap">
-    <div class="swipe-label left">◀ Before — June 2021</div>
-    <div class="swipe-label right">After — July 2021 ▶</div>
-    <div class="hint">← Drag bar left/right to reveal flood extent</div>
+  <div class="map-container">
     <div id="map"></div>
+  </div>
+
+  <!-- Source credit -->
+  <div class="map-footer">
+    <span class="source">Source: ESA Sentinel-1 · Google Earth Engine · JRC</span>
+    <div class="bbc-small">
+      <span>B</span><span>B</span><span>C</span>
+    </div>
+  </div>
+
+  <!-- Article body -->
+  <div class="article-body">
+    <p>
+      Satellite radar imagery shows the extent of flooding across central Switzerland during
+      the July 2021 flood event, when heavy rainfall caused the <strong>Aare</strong> and
+      <strong>Reuss rivers</strong> to overflow their banks, affecting communities in the
+      cantons of Bern, Luzern, and Aargau.
+    </p>
+    <p>
+      An estimated <strong>60.8 km²</strong> of land was temporarily inundated — detected
+      by comparing Sentinel-1 radar images taken before (June 2021) and during
+      (12–22 July 2021) the event.
+    </p>
+
+    <div class="method-note">
+      <strong>How this was detected</strong>
+      SAR (Synthetic Aperture Radar) satellites see through clouds and at night.
+      When land floods, the smooth water surface deflects radar away from the sensor,
+      causing a sharp drop in signal strength. Pixels with a drop greater than 3 dB
+      are classified as flooded. Permanent water bodies (lakes, rivers) are excluded.
+    </div>
+
+    <p>
+      Data was processed using <strong>Google Earth Engine</strong> with
+      ESA Copernicus Sentinel-1 GRD imagery. Permanent water was masked using
+      the JRC Global Surface Water dataset.
+    </p>
   </div>
 
 </div>
 
 <script>
-  const map = L.map("map", { center: [47.05, 8.05], zoom: 11, zoomControl: true });
+  const map = L.map("map", {
+    center: [47.05, 7.95],
+    zoom: 10,
+    zoomControl: true,
+    attributionControl: false,
+    scrollWheelZoom: true,
+  });
 
+  // Satellite basemap
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { attribution: "© Esri © NASA © USGS", maxZoom: 19 }
+    { maxZoom: 19 }
   ).addTo(map);
 
+  // Location labels — BBC white box style
+  const isMobile = window.innerWidth < 600;
+
+  // On mobile zoom out slightly to show context
+  if (isMobile) map.setView([47.05, 7.95], 9);
+
+  const locations = [
+    { name: "Aare River",  lat: 47.00, lng: 7.60, mobile: false },
+    { name: "Reuss River", lat: 47.07, lng: 8.25, mobile: false },
+    { name: "Bern",        lat: 46.95, lng: 7.44, mobile: true  },
+    { name: "Luzern",      lat: 47.05, lng: 8.31, mobile: true  },
+    { name: "Thun",        lat: 46.76, lng: 7.63, mobile: false },
+    { name: "Brienz",      lat: 46.76, lng: 8.03, mobile: false },
+  ];
+
+  locations.forEach(loc => {
+    if (isMobile && !loc.mobile) return; // hide secondary labels on mobile
+    L.circleMarker([loc.lat, loc.lng], {
+      radius: isMobile ? 4 : 3,
+      fillColor: "#fff", color: "#fff",
+      weight: 1, fillOpacity: 1,
+    })
+    .addTo(map)
+    .bindTooltip(loc.name, {
+      permanent: true, direction: "right",
+      offset: [6, 0], className: "location-label",
+    })
+    .openTooltip();
+  });
+
+  // Flood layer
   function floodColor(values) {
-    return values[0] === 1 ? "rgba(30, 120, 220, 0.82)" : null;
+    return values[0] === 1 ? "rgba(30, 120, 220, 0.85)" : null;
   }
 
   fetch("data/ch_flood_mask2021.tif")
     .then(r => r.arrayBuffer())
     .then(buf => parseGeoraster(buf))
     .then(georaster => {
+
       const beforeLayer = L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         { opacity: 0 }
@@ -406,12 +369,14 @@
         zIndex: 10,
       }).addTo(map);
 
+      // beforeLayer = LEFT (clean), afterLayer = RIGHT (flood overlay)
       L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
+
       document.getElementById("loading").style.display = "none";
     })
     .catch(err => {
       document.getElementById("loading").innerHTML =
-        `<p style="color:var(--wsl-red);text-align:center">⚠ Could not load flood data<br><small>${err.message}</small></p>`;
+        `<p style="color:#c00">⚠ Could not load satellite data: ${err.message}</p>`;
     });
 </script>
 </body>
