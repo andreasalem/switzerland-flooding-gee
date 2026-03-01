@@ -5,89 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Switzerland 2021 Flood Detection — Sentinel-1 SAR</title>
 
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Leaflet side-by-side swipe (browser build from gh-pages) -->
   <script src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side@gh-pages/leaflet-side-by-side.js"></script>
-
-  <!-- GeoRaster: render GeoTIFF directly in browser (v1 + compatible layer) -->
   <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
   <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f1117;
-      color: #e0e0e0;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 
     header {
-      padding: 12px 20px;
-      background: #1a1d27;
-      border-bottom: 1px solid #2e3140;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+      position: absolute; top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(10,10,20,0.82);
+      backdrop-filter: blur(6px);
+      padding: 10px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
+    header h1 { font-size: 0.9rem; font-weight: 600; color: #fff; }
+    header p  { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
 
-    header h1 { font-size: 0.95rem; font-weight: 600; color: #fff; }
-    header p  { font-size: 0.78rem; color: #8b8fa8; }
-
-    .badge {
-      font-size: 0.7rem; padding: 3px 10px;
-      border-radius: 12px; font-weight: 600;
+    .labels {
+      position: absolute; top: 62px; left: 0; right: 0;
+      z-index: 999;
+      display: flex; justify-content: space-between;
+      pointer-events: none;
+      padding: 0 14px;
     }
-    .badge-pre  { background: #1e3a5f; color: #7ab3e0; }
-    .badge-post { background: #3b1e1e; color: #e07a7a; }
+    .label-box {
+      font-size: 0.75rem; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px;
+      letter-spacing: 0.04em;
+    }
+    .label-before { background: rgba(30,50,90,0.85); color: #7ab3e0; }
+    .label-after  { background: rgba(60,20,20,0.85); color: #e07a7a; }
 
-    #map { width: 100%; height: calc(100vh - 52px); }
+    #map { width: 100vw; height: 100vh; }
+
+    /* Make swipe handle bigger and more visible */
+    .leaflet-sbs-divider {
+      background: white !important;
+      width: 3px !important;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6) !important;
+    }
+    .leaflet-sbs-range {
+      width: 100% !important;
+      cursor: col-resize !important;
+    }
 
     .legend {
       position: absolute;
-      bottom: 30px; right: 10px;
+      bottom: 24px; right: 14px;
       z-index: 1000;
-      background: rgba(15,17,23,0.88);
-      border: 1px solid #2e3140;
+      background: rgba(10,10,20,0.82);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 0.78rem;
-      line-height: 2;
+      padding: 10px 14px;
+      font-size: 0.75rem;
+      color: #ddd;
     }
-    .legend-title { font-weight: 600; color: #fff; margin-bottom: 4px; }
-    .legend-row { display: flex; align-items: center; gap: 8px; }
-    .swatch { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+    .legend b { display: block; margin-bottom: 6px; color: #fff; font-size: 0.8rem; }
+    .legend-row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+    .dot { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
 
     .hint {
       position: absolute;
-      top: 66px; left: 50%;
-      transform: translateX(-50%);
+      bottom: 24px; left: 50%; transform: translateX(-50%);
       z-index: 1000;
-      background: rgba(15,17,23,0.82);
-      border: 1px solid #2e3140;
-      border-radius: 6px;
-      padding: 6px 14px;
-      font-size: 0.75rem;
-      color: #8b8fa8;
-      pointer-events: none;
-      white-space: nowrap;
+      background: rgba(10,10,20,0.75);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.72rem; color: #bbb;
+      pointer-events: none; white-space: nowrap;
     }
 
     #loading {
       position: fixed; inset: 0; z-index: 9999;
-      background: #0f1117;
+      background: #0d0f18;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 14px;
+      align-items: center; justify-content: center; gap: 12px;
     }
-    #loading p { color: #8b8fa8; font-size: 0.85rem; }
+    #loading h2 { color: #fff; font-size: 0.95rem; font-weight: 500; }
+    #loading p  { color: #777; font-size: 0.8rem; }
     .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid #2e3140;
-      border-top-color: #5b8dee;
+      width: 34px; height: 34px;
+      border: 3px solid #222;
+      border-top-color: #4a90d9;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -98,77 +105,77 @@
 
 <div id="loading">
   <div class="spinner"></div>
-  <p>Loading Sentinel-1 SAR imagery…</p>
+  <h2>Loading flood data…</h2>
+  <p>Fetching Sentinel-1 SAR results (~30 s)</p>
 </div>
 
 <header>
   <div>
-    <h1>Switzerland — July 2021 Flood Extent · Sentinel-1 SAR Change Detection</h1>
-    <p>Aare / Reuss basin · Detected flooded area: ~60.8 km²</p>
+    <h1>Switzerland — July 2021 Flood Detection · Sentinel-1 SAR</h1>
+    <p>Aare / Reuss basin &nbsp;·&nbsp; ~60.8 km² detected &nbsp;·&nbsp; Drag the bar to compare before and after</p>
   </div>
-  <span class="badge badge-pre">◀ Jun 2021 (pre-flood)</span>
-  <span class="badge badge-post">Jul 2021 (post-flood) ▶</span>
 </header>
 
-<div id="map"></div>
-<div class="hint">← Drag bar to compare pre / post flood &nbsp;|&nbsp; Blue = detected flood extent</div>
-
-<div class="legend">
-  <div class="legend-title">Legend</div>
-  <div class="legend-row"><div class="swatch" style="background:#4a90d9;opacity:.9"></div>Detected flood</div>
-  <div class="legend-row"><div class="swatch" style="background:#aaa"></div>High backscatter (dry land)</div>
-  <div class="legend-row"><div class="swatch" style="background:#333"></div>Low backscatter (shadow / water)</div>
+<div class="labels">
+  <span class="label-box label-before">◀ Before (Jun 2021)</span>
+  <span class="label-box label-after">After (Jul 2021) ▶</span>
 </div>
 
+<div class="hint">← Drag bar left/right to reveal flood extent</div>
+
+<div class="legend">
+  <b>Legend</b>
+  <div class="legend-row"><div class="dot" style="background:#4a90d9"></div> Detected flood</div>
+  <div class="legend-row"><div class="dot" style="background:rgba(255,255,255,0.15);border:1px solid #555"></div> No change</div>
+</div>
+
+<div id="map"></div>
+
 <script>
-  const map = L.map("map", { center: [47.1, 7.75], zoom: 9 });
+  const map = L.map("map", { center: [47.1, 7.75], zoom: 9, zoomControl: true });
 
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: "© OpenStreetMap © CartoDB", maxZoom: 19
-  }).addTo(map);
+  // Basemap — used on BOTH sides as the base
+  const basemap = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    { attribution: "© OpenStreetMap © CartoDB", maxZoom: 19 }
+  ).addTo(map);
 
-  // Colour ramp for SAR VV backscatter (dB): -25 → 0 dB = dark → light grey
-  function sarColor(values) {
-    const v = values[0];
-    if (v === null || isNaN(v) || v === 0) return null;
-    const t = Math.max(0, Math.min(1, (v + 25) / 25));
-    const c = Math.round(t * 210);
-    return `rgba(${c},${c},${c},0.85)`;
+  // Flood mask colour function — blue for flood (value=1), transparent otherwise
+  function floodColor(values) {
+    return values[0] === 1 ? "rgba(30, 120, 220, 0.75)" : null;
   }
 
-  // Binary flood mask: 1 = flooded (blue), 0 = transparent
-  function maskColor(values) {
-    if (values[0] !== 1) return null;
-    return "rgba(74,144,217,0.85)";
-  }
+  fetch("data/ch_flood_mask2021.tif")
+    .then(r => r.arrayBuffer())
+    .then(buf => parseGeoraster(buf))
+    .then(georaster => {
 
-  async function loadTiff(path, colorFn) {
-    const buf = await (await fetch(path)).arrayBuffer();
-    const gr  = await parseGeoraster(buf);
-    return new GeoRasterLayer({ georaster: gr, pixelValuesToColorFn: colorFn, resolution: 256 });
-  }
+      // "Before" layer = just the basemap (no overlay) — transparent placeholder
+      const beforeLayer = L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        { opacity: 0 }   // invisible — we just need a layer for the swipe control
+      );
 
-  Promise.all([
-    loadTiff("data/ch_flood_pre2021.tif",  sarColor),
-    loadTiff("data/ch_flood_post2021.tif", sarColor),
-    loadTiff("data/ch_flood_mask2021.tif", maskColor),
-  ]).then(([pre, post, mask]) => {
-    pre.addTo(map);
-    post.addTo(map);
-    mask.addTo(map);          // flood mask always visible on both sides
+      // "After" layer = flood mask on top
+      const afterLayer = new GeoRasterLayer({
+        georaster,
+        pixelValuesToColorFn: floodColor,
+        resolution: 256,
+        opacity: 1,
+        zIndex: 10,
+      }).addTo(map);
 
-    L.control.sideBySide(pre, post).addTo(map);
-    map.fitBounds(pre.getBounds());
+      // Swipe: before (transparent) left, flood mask right
+      // The basemap stays visible on both sides since it's not clipped
+      L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
 
-    document.getElementById("loading").style.display = "none";
-  }).catch(err => {
-    document.getElementById("loading").innerHTML =
-      `<p style="color:#e07a7a;text-align:center">
-        ⚠ Data files not found.<br>
-        Download GeoTIFFs from Google Drive and place them in <code>data/</code>.
-      </p>`;
-    console.error(err);
-  });
+      map.fitBounds(afterLayer.getBounds());
+      document.getElementById("loading").style.display = "none";
+    })
+    .catch(err => {
+      document.getElementById("loading").innerHTML =
+        `<p style="color:#e07a7a;text-align:center">⚠ Could not load data/ch_flood_mask2021.tif<br><small>${err.message}</small></p>`;
+    });
 </script>
 </body>
 </html>
