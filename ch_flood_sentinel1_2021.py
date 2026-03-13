@@ -34,15 +34,17 @@ S1 = (ee.ImageCollection("COPERNICUS/S1_GRD")
         .select("VV"))
 
 # ── Pre-flood composite: June 2021 (dry, before peak flooding) ────────────────
+# Median preferred over mean: reduces sensitivity to speckle outliers in SAR data
 pre = (S1
        .filterDate("2021-06-01", "2021-06-30")
-       .mean()
+       .median()
        .rename("VV_pre"))
 
-# ── Post-flood composite: 12–20 July 2021 (peak flooding) ────────────────────
+# ── Post-flood composite: 12–22 July 2021 (peak flooding) ────────────────────
+# Median preferred over mean: more robust to speckle noise across passes
 post = (S1
         .filterDate("2021-07-12", "2021-07-22")
-        .mean()
+        .median()
         .rename("VV_post"))
 
 # ── Change detection: difference in backscatter (dB) ─────────────────────────

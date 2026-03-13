@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blatten Glacier Collapse 2025 · Sentinel-2 Before/After</title>
+  <meta name="description" content="True-color Sentinel-2 before/after imagery showing the May 2025 Blatten glacier and rock avalanche in the Lötschental valley, Canton Valais, Switzerland." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Blatten Glacier Collapse 2025 — Sentinel-2 Before/After" />
+  <meta property="og:description" content="Drag to reveal the destruction caused by the May 2025 glacier and rock avalanche that buried the village of Blatten in Canton Valais." />
+  <meta property="og:type" content="website" />
+
+  <!-- JSON-LD Dataset schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Dataset",
+    "name": "Blatten Glacier Collapse Before/After — Sentinel-2 True Color, May 2025",
+    "description": "True-color Sentinel-2 (10 m) optical before/after composites for the May 2025 Blatten glacier and rock avalanche, Lötschental valley (Canton Valais). Processed in Google Earth Engine.",
+    "temporalCoverage": "2025-04-01/2025-08-01",
+    "spatialCoverage": {
+      "@type": "Place",
+      "geo": { "@type": "GeoShape", "box": "46.40 7.78 46.46 7.90" }
+    },
+    "creator": { "@type": "Person", "name": "Andrea Salem", "url": "https://github.com/andreasalem" },
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "keywords": ["glacier collapse", "mass movement", "Sentinel-2", "Blatten", "Lötschental", "Switzerland", "Google Earth Engine"]
+  }
+  </script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side@gh-pages/leaflet-side-by-side.js"></script>
+  <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
+  <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      background: #fff;
+      color: #111;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #0d0d0d;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+    }
+    .site-brand {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .topbar-section {
+      font-size: 0.72rem;
+      font-weight: 400;
+      color: #999;
+      padding-left: 16px;
+      border-left: 1px solid #333;
+    }
+    .topbar-section a { color: #6af; text-decoration: none; }
+
+    /* ── Page navigation (TOC) ── */
+    .page-nav {
+      background: #f7f7f7;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 38px;
+      overflow-x: auto;
+    }
+    .page-nav a {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #555;
+      text-decoration: none;
+      padding: 0 16px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #e0e0e0;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .page-nav a:hover { background: #efefef; color: #111; }
+    .page-nav a.active {
+      color: #111;
+      font-weight: 700;
+      border-bottom: 2px solid #111;
+      background: #fff;
+    }
+
+    /* ── Article ── */
+    .article {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+    .article h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #111;
+      margin-bottom: 8px;
+    }
+    .article .deck {
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* ── Dates row ── */
+    .dates-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .dates-row .date {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #111;
+    }
+
+    /* ── Map container ── */
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      border: 1px solid #ddd;
+      overflow: hidden;
+    }
+    #map { width: 100%; height: 100%; }
+
+    /* Swipe handle — large white circle */
+    .leaflet-sbs-divider {
+      background: rgba(0,0,0,0.2) !important;
+      width: 1px !important;
+      box-shadow: none !important;
+    }
+    .leaflet-sbs-range { cursor: ew-resize !important; touch-action: none; }
+    .leaflet-sbs-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 48px; height: 48px;
+      background: #fff;
+      border-radius: 50%;
+      cursor: ew-resize;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: none;
+    }
+    .leaflet-sbs-range::-moz-range-thumb {
+      width: 48px; height: 48px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: none;
+    }
+
+    /* Location labels */
+    .leaflet-tooltip.location-label {
+      background: rgba(255,255,255,0.95) !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2) !important;
+      font-size: 0.72rem !important;
+      font-weight: 600 !important;
+      color: #111 !important;
+      padding: 3px 8px !important;
+    }
+    .leaflet-tooltip.location-label::before { display: none !important; }
+
+    /* Source credit */
+    .map-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-top: 1px solid #ddd;
+      margin-bottom: 20px;
+    }
+    .map-footer .source { font-size: 0.72rem; color: #666; }
+    .map-credit { font-size: 0.68rem; color: #999; font-style: italic; }
+
+    /* Article body */
+    .article-body p {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: #333;
+      margin-bottom: 14px;
+    }
+    .article-body p strong { color: #111; }
+    .method-note {
+      background: #f5f5f5;
+      border-left: 3px solid #ccc;
+      padding: 12px 16px;
+      margin: 16px 0;
+      font-size: 0.8rem;
+      color: #555;
+      line-height: 1.6;
+    }
+    .method-note strong { color: #111; display: block; margin-bottom: 4px; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .topbar { height: 38px; padding: 0 14px; }
+      .article { padding: 16px 14px 28px; }
+      .article h1 { font-size: 1.15rem; }
+      .article .deck { font-size: 0.8rem; }
+      .map-container { height: 56vw; min-height: 240px; max-height: 380px; }
+      .article-body p { font-size: 0.82rem; }
+    }
+    @media (min-width: 601px) and (max-width: 900px) {
+      .map-container { height: 380px; }
+      .article h1 { font-size: 1.35rem; }
+    }
+
+    /* Loading */
+    #loading {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #fff;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px;
+    }
+    #loading p { color: #666; font-size: 0.8rem; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid #eee;
+      border-top-color: #111;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading satellite data…</p>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <span class="site-brand">Switzerland Natural Hazards</span>
+  <span class="topbar-section">
+    Maintained by Andrea Salem ·
+    <a href="https://github.com/andreasalem/switzerland-flooding-gee" target="_blank">GitHub</a>
+  </span>
+</div>
+
+<!-- Page navigation -->
+<nav class="page-nav">
+  <a href="overview.html">Overview</a>
+  <a href="index.html">Floods 2021 — Aare &amp; Reuss (SAR)</a>
+  <a href="brienz.html">Floods 2021 — Brienz (Optical)</a>
+  <a href="blatten.html" class="active">Glacier Collapse 2025 — Blatten</a>
+</nav>
+
+<!-- Article -->
+<div class="article">
+
+  <h1>Glacier collapse buries Blatten village</h1>
+  <p class="deck">
+    Drag the button left to reveal the destruction caused by the May 2025 glacier and rock avalanche
+    in the Lötschental valley, Valais. Before: intact village and glacier. After: debris field.
+  </p>
+
+  <div class="dates-row">
+    <span class="date">Before — April 2025</span>
+    <span class="date">After — Summer 2025</span>
+  </div>
+
+  <div class="map-container">
+    <div id="map"></div>
+  </div>
+
+  <div class="map-footer">
+    <span class="source">Source: ESA Sentinel-2 · Google Earth Engine · Copernicus</span>
+    <span class="map-credit">Andrea Salem · switzerland-flooding-gee</span>
+  </div>
+
+  <div class="article-body">
+    <p>
+      In May 2025, a hanging glacier and large rock mass above the village of
+      <strong>Blatten</strong> in the Lötschental valley (Canton Valais) collapsed,
+      sending a massive avalanche of ice and rock debris down the valley floor.
+      The village had been evacuated days earlier following warnings from monitoring systems.
+    </p>
+    <p>
+      Sentinel-2 optical satellite imagery reveals the dramatic transformation:
+      a green Alpine valley with a visible glacier gives way to a vast grey debris field
+      covering the valley bottom. The change is unmistakable even from space.
+    </p>
+
+    <div class="method-note">
+      <strong>About the imagery</strong>
+      Both images are true-color Sentinel-2 optical composites (bands B4/B3/B2 at 10 m resolution),
+      cloud-masked using the QA60 bitmask and median-composited over multi-week windows to minimise
+      residual cloud and shadow. Reflectance scaled ×3.5 for visual clarity. Processed via Google
+      Earth Engine with the COPERNICUS/S2_SR_HARMONIZED collection.
+    </div>
+
+    <div class="method-note">
+      <strong>Uncertainty</strong>
+      High-Alpine terrain with persistent snow and cloud cover limits Sentinel-2 availability.
+      Median compositing reduces but does not eliminate cloud shadow artefacts. Optical imagery
+      captures the visible debris field extent but cannot detect material buried under snow or
+      estimate depth/volume. Ground and airborne surveys are required for precise damage assessment.
+      The 2025 Blatten collapse is a rapidly evolving event; imagery may not reflect final extent.
+    </div>
+
+    <p>
+      The Lötschental is a high Alpine valley with limited road access.
+      Satellite imagery provided the earliest and clearest documentation of the
+      event extent before ground teams could access the area.
+    </p>
+    <p style="font-size:0.78rem;color:#888;line-height:1.5;">
+      References: Gorelick et al. (2017) Remote Sens. Environ. 202:18–27 ·
+      ESA Copernicus Sentinel-2 Mission ·
+      Swiss Federal Office for the Environment (FOEN)
+    </p>
+
+    <details style="margin-top:16px;font-size:0.78rem;color:#555;line-height:1.7;border-top:1px solid #eee;padding-top:12px;">
+      <summary style="cursor:pointer;font-weight:600;color:#111;font-size:0.8rem;margin-bottom:6px;">
+        Full data details
+      </summary>
+      <table style="border-collapse:collapse;width:100%;margin-top:8px;">
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Sensor</td><td>Sentinel-2 A/B · Level-2A Surface Reflectance</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Collection</td><td>COPERNICUS/S2_SR_HARMONIZED (Google Earth Engine)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Bands</td><td>B4 (Red), B3 (Green), B2 (Blue) — true color</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Before window</td><td>April 2025 (pre-collapse; intact glacier and village)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">After window</td><td>Summer 2025 (post-collapse debris field)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Cloud masking</td><td>QA60 bitmask (bits 10–11); cloud threshold 80%</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Compositing</td><td>Median across window scenes</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Resolution</td><td>10 m · EPSG:4326</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Location</td><td>Lötschental valley, Canton Valais [46.425°N, 7.835°E]</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Code</td><td><a href="https://github.com/andreasalem/switzerland-flooding-gee" style="color:#555">github.com/andreasalem/switzerland-flooding-gee</a></td></tr>
+      </table>
+    </details>
+
+  </div>
+
+</div>
+
+<script>
+  const isMobile = window.innerWidth < 600;
+
+  const map = L.map("map", {
+    center: [46.425, 7.835],   // Lötschental / Blatten
+    zoom: isMobile ? 12 : 13,
+    zoomControl: true,
+    attributionControl: false,
+    scrollWheelZoom: true,
+  });
+
+  L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 19 }
+  ).addTo(map);
+
+  // Location labels
+  const locations = [
+    { name: "Blatten",        lat: 46.427, lng: 7.834, mobile: true  },
+    { name: "Lötschental",    lat: 46.435, lng: 7.800, mobile: true  },
+    { name: "Lonza River",    lat: 46.420, lng: 7.860, mobile: false },
+    { name: "Glacier (pre)",  lat: 46.445, lng: 7.830, mobile: false },
+  ];
+
+  locations.forEach(loc => {
+    if (isMobile && !loc.mobile) return;
+    L.circleMarker([loc.lat, loc.lng], {
+      radius: isMobile ? 4 : 3,
+      fillColor: "#fff", color: "#fff",
+      weight: 1, fillOpacity: 1,
+    })
+    .addTo(map)
+    .bindTooltip(loc.name, {
+      permanent: true, direction: "right",
+      offset: [6, 0], className: "location-label",
+    })
+    .openTooltip();
+  });
+
+  // Load before/after Sentinel-2 GeoTIFFs
+  function rgbColor(values) {
+    const [r, g, b] = values;
+    if (r === null || r === 0) return null;
+    return `rgb(${r},${g},${b})`;
+  }
+
+  Promise.all([
+    fetch("data/ch_blatten_before.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
+    fetch("data/ch_blatten_after.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
+  ]).then(([grBefore, grAfter]) => {
+
+    const beforeLayer = new GeoRasterLayer({
+      georaster: grBefore,
+      pixelValuesToColorFn: rgbColor,
+      resolution: 256,
+      opacity: 1,
+      zIndex: 5,
+    }).addTo(map);
+
+    const afterLayer = new GeoRasterLayer({
+      georaster: grAfter,
+      pixelValuesToColorFn: rgbColor,
+      resolution: 256,
+      opacity: 1,
+      zIndex: 5,
+    }).addTo(map);
+
+    L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
+
+    // Prevent map pan when dragging swipe bar
+    const range = document.querySelector('.leaflet-sbs-range');
+    if (range) {
+      range.addEventListener('mousedown',  () => map.dragging.disable());
+      range.addEventListener('touchstart', () => map.dragging.disable(), { passive: true });
+      document.addEventListener('mouseup',  () => map.dragging.enable());
+      document.addEventListener('touchend', () => map.dragging.enable());
+    }
+
+    document.getElementById("loading").style.display = "none";
+  }).catch(err => {
+    document.getElementById("loading").innerHTML =
+      `<p style="color:#c00;text-align:center">
+        ⚠ Satellite data not yet available.<br>
+        <small>Run <code>ch_blatten_sentinel2.py</code> and place GeoTIFFs in <code>data/</code>.</small>
+      </p>`;
+  });
+</script>
+</body>
+</html>

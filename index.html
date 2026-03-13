@@ -4,6 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Switzerland floods: Satellite images show extent of flooding</title>
+  <meta name="description" content="SAR-derived flood extent map for the July 2021 central Switzerland floods. ~60.8 km² detected along the Aare and Reuss rivers using Sentinel-1 radar imagery processed in Google Earth Engine." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Switzerland Floods 2021 — Satellite Before/After" />
+  <meta property="og:description" content="Sentinel-1 SAR radar imagery shows ~60.8 km² of flooding along the Aare and Reuss rivers, July 2021." />
+  <meta property="og:type" content="website" />
+
+  <!-- JSON-LD Dataset schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Dataset",
+    "name": "Switzerland Flood Extent Map — July 2021 (Sentinel-1 SAR)",
+    "description": "Flood extent map derived from Sentinel-1 SAR backscatter change detection for the July 2021 central Switzerland flooding event. ~60.8 km² detected (3 dB threshold), Aare/Reuss basin.",
+    "temporalCoverage": "2021-06-01/2021-07-22",
+    "spatialCoverage": {
+      "@type": "Place",
+      "geo": { "@type": "GeoShape", "box": "46.7 7.0 47.5 8.5" }
+    },
+    "creator": { "@type": "Person", "name": "Andrea Salem", "url": "https://github.com/andreasalem" },
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "citation": "Blöschl et al. (2023) NHESS 23:525–551. https://doi.org/10.5194/nhess-23-525-2023",
+    "keywords": ["flood mapping", "Sentinel-1", "SAR", "Switzerland", "Google Earth Engine", "remote sensing"]
+  }
+  </script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -169,6 +194,38 @@
     }
     .method-note strong { color: #111; display: block; margin-bottom: 4px; }
 
+    /* ── Page navigation ── */
+    .page-nav {
+      background: #f7f7f7;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 38px;
+      overflow-x: auto;
+    }
+    .page-nav a {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #555;
+      text-decoration: none;
+      padding: 0 16px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid #e0e0e0;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .page-nav a:hover { background: #efefef; color: #111; }
+    .page-nav a.active {
+      color: #111;
+      font-weight: 700;
+      border-bottom: 2px solid #111;
+      background: #fff;
+    }
+
     /* ── Responsive / Mobile ── */
     @media (max-width: 600px) {
       .topbar { height: 38px; padding: 0 14px; }
@@ -228,6 +285,14 @@
   <span class="topbar-section">Maintained by Andrea Salem · <a href="https://github.com/andreasalem/switzerland-flooding-gee" target="_blank" style="color:#6af;text-decoration:none">GitHub</a></span>
 </div>
 
+<!-- Page navigation -->
+<nav class="page-nav">
+  <a href="overview.html">Overview</a>
+  <a href="index.html" class="active">Floods 2021 — Aare &amp; Reuss (SAR)</a>
+  <a href="brienz.html">Floods 2021 — Brienz (Optical)</a>
+  <a href="blatten.html">Glacier Collapse 2025 — Blatten</a>
+</nav>
+
 <!-- Article -->
 <div class="article">
 
@@ -236,8 +301,8 @@
 
   <!-- Dates above map -->
   <div class="dates-row">
-    <span class="date">June 2021</span>
-    <span class="date">July 2021</span>
+    <span class="date">Before — June 2021 (SAR)</span>
+    <span class="date">After — July 2021 (flood detected)</span>
   </div>
 
   <!-- Map -->
@@ -270,14 +335,49 @@
       SAR (Synthetic Aperture Radar) satellites see through clouds and at night.
       When land floods, the smooth water surface deflects radar away from the sensor,
       causing a sharp drop in signal strength. Pixels with a drop greater than 3 dB
-      are classified as flooded. Permanent water bodies (lakes, rivers) are excluded.
+      are classified as flooded. Permanent water bodies (lakes, rivers) are excluded
+      using the JRC Global Surface Water dataset (Pekel et al., 2016).
+    </div>
+
+    <div class="method-note">
+      <strong>Uncertainty</strong>
+      The ~60.8 km² estimate captures areas of unambiguous water (VV backscatter drop &gt;3 dB)
+      and is conservative by design. Sensitivity to threshold choice: a 2.5 dB threshold
+      yields ~75–80 km²; a 3.5 dB threshold yields ~50–55 km². Partially flooded fields,
+      shallow inundation under vegetation, and radar shadow are likely underrepresented.
+      No field validation; cross-reference with Copernicus EMS EMSR519 recommended.
     </div>
 
     <p>
       Data was processed using <strong>Google Earth Engine</strong> with
-      ESA Copernicus Sentinel-1 GRD imagery. Permanent water was masked using
-      the JRC Global Surface Water dataset.
+      ESA Copernicus Sentinel-1 GRD imagery (IW mode, VV polarisation, descending orbit).
+      The event is documented in Blöschl et al. (2023), who contextualise it as a
+      500–800-year return-period rainfall event in the most affected sub-regions.
     </p>
+    <p style="font-size:0.78rem;color:#888;line-height:1.5;">
+      References: Blöschl et al. (2023) NHESS 23:525–551 ·
+      Pekel et al. (2016) Nature 540:418–422 ·
+      Gorelick et al. (2017) Remote Sens. Environ. 202:18–27
+    </p>
+
+    <details style="margin-top:16px;font-size:0.78rem;color:#555;line-height:1.7;border-top:1px solid #eee;padding-top:12px;">
+      <summary style="cursor:pointer;font-weight:600;color:#111;font-size:0.8rem;margin-bottom:6px;">
+        Full data details
+      </summary>
+      <table style="border-collapse:collapse;width:100%;margin-top:8px;">
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Sensor</td><td>Sentinel-1 A/B · IW mode · VV polarisation · descending orbit</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Collection</td><td>COPERNICUS/S1_GRD (Google Earth Engine)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Pre-flood</td><td>Median composite, 1–30 June 2021 (VV backscatter, dB)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Post-flood</td><td>Median composite, 12–22 July 2021 (peak discharge period)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Flood threshold</td><td>VV drop &gt; 3 dB (standard SAR water detection criterion)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Permanent water</td><td>Masked via JRC GSW v1.4 (seasonality ≥ 10 months/year)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Resolution</td><td>100 m export · EPSG:4326</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Estimated area</td><td>~60.8 km² (range 50–80 km² across 2.5–3.5 dB thresholds)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Validation</td><td>None; no field data; cross-reference Copernicus EMS EMSR519</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Code</td><td><a href="https://github.com/andreasalem/switzerland-flooding-gee" style="color:#555">github.com/andreasalem/switzerland-flooding-gee</a></td></tr>
+      </table>
+    </details>
+
   </div>
 
 </div>
@@ -327,47 +427,59 @@
     .openTooltip();
   });
 
-  // Flood layer
+  // SAR pre-flood: map dB range (~-25 to 0) to semi-transparent grayscale
+  function sarColor(values) {
+    const v = values[0];
+    if (v === null || v === undefined || isNaN(v)) return null;
+    const norm = Math.max(0, Math.min(1, (v + 25) / 25));
+    const g = Math.round(norm * 210);
+    return `rgba(${g},${g},${g},0.75)`;
+  }
+
+  // Flood mask: flooded pixels in blue
   function floodColor(values) {
     return values[0] === 1 ? "rgba(30, 120, 220, 0.85)" : null;
   }
 
-  fetch("data/ch_flood_mask2021.tif")
-    .then(r => r.arrayBuffer())
-    .then(buf => parseGeoraster(buf))
-    .then(georaster => {
+  Promise.all([
+    fetch("data/ch_flood_pre2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
+    fetch("data/ch_flood_mask2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
+  ]).then(([grPre, grMask]) => {
 
-      const beforeLayer = L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        { opacity: 0 }
-      ).addTo(map);
+    // LEFT side: pre-flood SAR backscatter (grayscale)
+    const beforeLayer = new GeoRasterLayer({
+      georaster: grPre,
+      pixelValuesToColorFn: sarColor,
+      resolution: 256,
+      opacity: 1,
+      zIndex: 5,
+    }).addTo(map);
 
-      const afterLayer = new GeoRasterLayer({
-        georaster,
-        pixelValuesToColorFn: floodColor,
-        resolution: 256,
-        opacity: 1,
-        zIndex: 10,
-      }).addTo(map);
+    // RIGHT side: flood mask overlay (blue)
+    const afterLayer = new GeoRasterLayer({
+      georaster: grMask,
+      pixelValuesToColorFn: floodColor,
+      resolution: 256,
+      opacity: 1,
+      zIndex: 10,
+    }).addTo(map);
 
-      // beforeLayer = LEFT (clean), afterLayer = RIGHT (flood overlay)
-      L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
+    L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
 
-      // Fix: prevent map panning when dragging the swipe bar
-      const range = document.querySelector('.leaflet-sbs-range');
-      if (range) {
-        range.addEventListener('mousedown',  () => map.dragging.disable());
-        range.addEventListener('touchstart', () => map.dragging.disable(), { passive: true });
-        document.addEventListener('mouseup',  () => map.dragging.enable());
-        document.addEventListener('touchend', () => map.dragging.enable());
-      }
+    // Prevent map pan when dragging the swipe bar
+    const range = document.querySelector('.leaflet-sbs-range');
+    if (range) {
+      range.addEventListener('mousedown',  () => map.dragging.disable());
+      range.addEventListener('touchstart', () => map.dragging.disable(), { passive: true });
+      document.addEventListener('mouseup',  () => map.dragging.enable());
+      document.addEventListener('touchend', () => map.dragging.enable());
+    }
 
-      document.getElementById("loading").style.display = "none";
-    })
-    .catch(err => {
-      document.getElementById("loading").innerHTML =
-        `<p style="color:#c00">⚠ Could not load satellite data: ${err.message}</p>`;
-    });
+    document.getElementById("loading").style.display = "none";
+  }).catch(err => {
+    document.getElementById("loading").innerHTML =
+      `<p style="color:#c00;text-align:center">⚠ Could not load satellite data: ${err.message}</p>`;
+  });
 </script>
 </body>
 </html>
