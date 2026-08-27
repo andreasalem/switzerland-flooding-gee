@@ -32,7 +32,7 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side@gh-pages/leaflet-side-by-side.js"></script>
+  <script src="vendor/leaflet-side-by-side.js"></script>
   <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
   <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
@@ -355,8 +355,8 @@
       <strong>About the imagery</strong>
       Both images are true-color Sentinel-2 optical composites (bands B4/B3/B2 at 10 m resolution),
       cloud-masked using the QA60 bitmask (bits 10–11) and median-composited over multi-scene windows —
-      June 10–25 2021 (5 cloud-free scenes; pre-flood peak greenness) and July 18–August 15 2021
-      (9 scenes; peak flood and immediate aftermath, sediment and altered channels visible). Reflectance
+      June 10–25 2021 (pre-flood peak greenness) and July 18–August 15 2021
+      (flood peak and immediate aftermath — sediment, brown water, altered channels visible). Reflectance
       scaled ×3.5 for visual clarity. Processed via Google Earth Engine, COPERNICUS/S2_SR_HARMONIZED collection.
     </div>
 
@@ -413,13 +413,13 @@
     center: [46.755, 8.035],   // Brienz / Aare outlet into Brienzersee
     zoom: isMobile ? 12 : 13,
     zoomControl: true,
-    attributionControl: false,
+    attributionControl: true,
     scrollWheelZoom: true,
   });
 
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 19 }
+    { maxZoom: 19, attribution: "Basemap © Esri, Maxar, Earthstar Geographics · Contains modified Copernicus Sentinel data 2021" }
   ).addTo(map);
 
   // Location labels

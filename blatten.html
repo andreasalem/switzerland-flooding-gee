@@ -31,7 +31,7 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side@gh-pages/leaflet-side-by-side.js"></script>
+  <script src="vendor/leaflet-side-by-side.js"></script>
   <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
   <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
@@ -277,7 +277,7 @@
   </p>
 
   <div class="dates-row">
-    <span class="date">Before — April 2025</span>
+    <span class="date">Before — Summer 2024</span>
     <span class="date">After — Summer 2025</span>
   </div>
 
@@ -339,8 +339,8 @@
         <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Sensor</td><td>Sentinel-2 A/B · Level-2A Surface Reflectance</td></tr>
         <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Collection</td><td>COPERNICUS/S2_SR_HARMONIZED (Google Earth Engine)</td></tr>
         <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Bands</td><td>B4 (Red), B3 (Green), B2 (Blue) — true color</td></tr>
-        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Before window</td><td>April 2025 (pre-collapse; intact glacier and village)</td></tr>
-        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">After window</td><td>Summer 2025 (post-collapse debris field)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Before window</td><td>July 15–September 15 2024 (green valley, glacier intact, no snow)</td></tr>
+        <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">After window</td><td>June–August 2025 (post-collapse debris field)</td></tr>
         <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Cloud masking</td><td>QA60 bitmask (bits 10–11); cloud threshold 80%</td></tr>
         <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Compositing</td><td>Median across window scenes</td></tr>
         <tr><td style="padding:3px 10px 3px 0;color:#888;white-space:nowrap">Resolution</td><td>10 m · EPSG:4326</td></tr>
@@ -360,13 +360,13 @@
     center: [46.425, 7.835],   // Lötschental / Blatten
     zoom: isMobile ? 12 : 13,
     zoomControl: true,
-    attributionControl: false,
+    attributionControl: true,
     scrollWheelZoom: true,
   });
 
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 19 }
+    { maxZoom: 19, attribution: "Basemap © Esri, Maxar, Earthstar Geographics · Contains modified Copernicus Sentinel data 2024–2025" }
   ).addTo(map);
 
   // Location labels

@@ -32,7 +32,7 @@
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/digidem/leaflet-side-by-side@gh-pages/leaflet-side-by-side.js"></script>
+  <script src="vendor/leaflet-side-by-side.js"></script>
   <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
   <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
@@ -302,7 +302,7 @@
   <!-- Dates above map -->
   <div class="dates-row">
     <span class="date">Before — June 2021 (SAR)</span>
-    <span class="date">After — July 2021 (flood detected)</span>
+    <span class="date">After — July 2021 (SAR + flood mask)</span>
   </div>
 
   <!-- Map -->
@@ -387,14 +387,14 @@
     center: [46.76, 8.03],   // Brienz — most severely flooded area
     zoom: 12,
     zoomControl: true,
-    attributionControl: false,
+    attributionControl: true,
     scrollWheelZoom: true,
   });
 
   // Satellite basemap
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 19 }
+    { maxZoom: 19, attribution: "Basemap © Esri, Maxar, Earthstar Geographics · Contains modified Copernicus Sentinel data 2021" }
   ).addTo(map);
 
   // Location labels — BBC white box style
@@ -436,17 +436,13 @@
     return `rgba(${g},${g},${g},0.75)`;
   }
 
-  // Flood mask: flooded pixels in blue
-  function floodColor(values) {
-    return values[0] === 1 ? "rgba(30, 120, 220, 0.85)" : null;
-  }
-
   Promise.all([
     fetch("data/ch_flood_pre2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
+    fetch("data/ch_flood_post2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
     fetch("data/ch_flood_mask2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
-  ]).then(([grPre, grMask]) => {
+  ]).then(([grPre, grPost, grMask]) => {
 
-    // LEFT side: pre-flood SAR backscatter (grayscale)
+    // LEFT side: pre-flood SAR backscatter (grayscale) — June 2021
     const beforeLayer = new GeoRasterLayer({
       georaster: grPre,
       pixelValuesToColorFn: sarColor,
@@ -455,16 +451,28 @@
       zIndex: 5,
     }).addTo(map);
 
-    // RIGHT side: flood mask overlay (blue)
+    // RIGHT side: post-flood SAR backscatter (same grayscale scale) — July 2021
+    // Flooded pixels appear darker (lower backscatter = water surface deflecting radar)
     const afterLayer = new GeoRasterLayer({
+      georaster: grPost,
+      pixelValuesToColorFn: sarColor,
+      resolution: 256,
+      opacity: 1,
+      zIndex: 5,
+    }).addTo(map);
+
+    // Flood mask overlay on right side — highlights detected water in blue
+    const maskLayer = new GeoRasterLayer({
       georaster: grMask,
-      pixelValuesToColorFn: floodColor,
+      pixelValuesToColorFn: v => v[0] === 1 ? "rgba(30,120,220,0.7)" : null,
       resolution: 256,
       opacity: 1,
       zIndex: 10,
     }).addTo(map);
 
-    L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
+    // Mask goes on the RIGHT side of the swipe with the post-flood layer —
+    // adding it to the map without registering it here makes it cover both sides
+    L.control.sideBySide(beforeLayer, [afterLayer, maskLayer]).addTo(map);
 
     // Prevent map pan when dragging the swipe bar
     const range = document.querySelector('.leaflet-sbs-range');

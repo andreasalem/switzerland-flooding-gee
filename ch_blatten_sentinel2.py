@@ -30,7 +30,9 @@ def mask_clouds(image):
 # Base collection — no date filter; apply filterDate BEFORE map to avoid GEE limits
 S2_base = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED").filterBounds(roi)
 
-BEFORE_START, BEFORE_END = "2025-03-01", "2025-05-14"
+# Before: summer 2024 — green valley, village visible, glacier intact, snow-free
+# (Apr 2025 before produced over-exposed snow/glacier; 2024 summer gives 48 clear scenes)
+BEFORE_START, BEFORE_END = "2024-07-15", "2024-09-15"
 AFTER_START,  AFTER_END  = "2025-06-01", "2025-08-31"
 
 def make_composite(start, end):
