@@ -15,7 +15,8 @@ Check: https://code.earthengine.google.com/tasks
 """
 
 import ee
-ee.Initialize(project="ksm-rch-global-poverty")
+import os
+ee.Initialize(project=os.environ.get("EE_PROJECT", "flooding"))
 
 # ROI: Lötschental valley around Blatten village
 roi = ee.Geometry.Rectangle([7.72, 46.38, 7.95, 46.48])
