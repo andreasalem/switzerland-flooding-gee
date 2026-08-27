@@ -4,3 +4,6 @@ __pycache__/
 *.geojson
 outputs/
 .env
+
+# raw rasters live in GitHub Release assets (see data/MANIFEST.md), never in the tree
+data/*.tif

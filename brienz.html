@@ -17,8 +17,8 @@
     "@context": "https://schema.org/",
     "@type": "Dataset",
     "name": "Brienz Flood Before/After — Sentinel-2 True Color, July 2021",
-    "description": "True-color Sentinel-2 (10 m) optical before/after composites for the July 2021 Brienz flood. Before: June 15–25 2021. After: July 28–August 8 2021. Processed in Google Earth Engine.",
-    "temporalCoverage": "2021-06-15/2021-08-08",
+    "description": "True-color Sentinel-2 (10 m) optical before/after composites for the July 2021 Brienz flood. Before: June 10–25 2021. After: July 18–August 15 2021. Processed in Google Earth Engine.",
+    "temporalCoverage": "2021-06-10/2021-08-15",
     "spatialCoverage": {
       "@type": "Place",
       "geo": { "@type": "GeoShape", "box": "46.68 7.85 46.84 8.20" }
@@ -33,8 +33,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="vendor/leaflet-side-by-side.js"></script>
-  <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
-  <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -367,7 +365,7 @@
       flooding in optical imagery is a visual indicator only — quantitative flood area is best
       derived from SAR (see <a href="index.html" style="color:#111">Aare &amp; Reuss map</a>,
       ~60.8 km² detected). The July 2021 event is documented in Blöschl et al. (2023) as a
-      500–800-year return-period rainfall event in the most affected sub-regions.
+      100–200-year return-period flood for the affected Swiss region.
     </div>
 
     <p>
@@ -446,52 +444,29 @@
     .openTooltip();
   });
 
-  // Load before/after Sentinel-2 GeoTIFFs
-  function rgbColor(values) {
-    const [r, g, b] = values;
-    if (r === null || r === 0) return null;
-    return `rgb(${r},${g},${b})`;
-  }
+  // Pre-rendered JPEG overlays (true-color S2, display-scaled at export; see
+  // render_overlays.py). Rasters warped to EPSG:3857 pre-render, so a
+  // linear imageOverlay stretch is exact. Raw GeoTIFFs: data/MANIFEST.md.
+  map.createPane("sbs-left");
+  map.createPane("sbs-right");
+  map.getPane("sbs-left").style.zIndex = 350;
+  map.getPane("sbs-right").style.zIndex = 350;
 
-  Promise.all([
-    fetch("data/ch_s2_before_brienz.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
-    fetch("data/ch_s2_after_brienz.tif").then(r  => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
-  ]).then(([grBefore, grAfter]) => {
+  const BOUNDS = [[46.67998, 7.84993], [46.84014, 8.20002]];
 
-    const beforeLayer = new GeoRasterLayer({
-      georaster: grBefore,
-      pixelValuesToColorFn: rgbColor,
-      resolution: 256,
-      opacity: 1,
-      zIndex: 5,
-    }).addTo(map);
+  const beforeLayer = L.imageOverlay("assets/brienz_before.webp", BOUNDS, { pane: "sbs-left"  }).addTo(map);
+  const afterLayer  = L.imageOverlay("assets/brienz_after.webp",  BOUNDS, { pane: "sbs-right" }).addTo(map);
 
-    const afterLayer = new GeoRasterLayer({
-      georaster: grAfter,
-      pixelValuesToColorFn: rgbColor,
-      resolution: 256,
-      opacity: 1,
-      zIndex: 5,
-    }).addTo(map);
+  L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
 
-    L.control.sideBySide(beforeLayer, afterLayer).addTo(map);
-
-    // Prevent map pan when dragging swipe bar
-    const range = document.querySelector('.leaflet-sbs-range');
-    if (range) {
-      range.addEventListener('mousedown',  () => map.dragging.disable());
-      range.addEventListener('touchstart', () => map.dragging.disable(), { passive: true });
-      document.addEventListener('mouseup',  () => map.dragging.enable());
-      document.addEventListener('touchend', () => map.dragging.enable());
-    }
-
+  Promise.all([beforeLayer, afterLayer].map(l => new Promise((res, rej) => {
+    l.once("load", res);
+    l.once("error", () => rej(new Error("overlay failed to load")));
+  }))).then(() => {
     document.getElementById("loading").style.display = "none";
   }).catch(err => {
     document.getElementById("loading").innerHTML =
-      `<p style="color:#c00;text-align:center">
-        ⚠ Satellite data not yet available.<br>
-        <small>Run <code>ch_brienz_sentinel2_rgb.py</code> via GEE and place GeoTIFFs in <code>data/</code>.</small>
-      </p>`;
+      `<p style="color:#c00;text-align:center">⚠ Could not load satellite imagery: ${err.message}</p>`;
   });
 </script>
 </body>

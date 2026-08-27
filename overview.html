@@ -436,9 +436,10 @@
     <div class="about-block">
       <h3>How it works</h3>
       <p>
-        Each map loads a pair of GeoTIFF rasters — processed in Google Earth Engine and
-        served directly in the browser via georaster-layer-for-leaflet. No tile server
-        required. Drag the swipe bar to compare before and after.
+        Each map shows a pair of lightweight image overlays (1–2 MB), pre-rendered from
+        Google Earth Engine GeoTIFF exports — no tile server, no in-browser raster parsing.
+        Drag the swipe bar to compare before and after; the raw GeoTIFFs are available as
+        GitHub Release assets (see <code>data/MANIFEST.md</code>).
       </p>
       <p style="margin-top:10px;">
         SAR maps use Sentinel-1 backscatter change detection (3 dB drop threshold).

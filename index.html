@@ -33,8 +33,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="vendor/leaflet-side-by-side.js"></script>
-  <script src="https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js"></script>
-  <script src="https://unpkg.com/georaster-layer-for-leaflet@2.0.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -352,7 +350,8 @@
       Data was processed using <strong>Google Earth Engine</strong> with
       ESA Copernicus Sentinel-1 GRD imagery (IW mode, VV polarisation, descending orbit).
       The event is documented in Blöschl et al. (2023), who contextualise it as a
-      500–800-year return-period rainfall event in the most affected sub-regions.
+      100–200-year return-period flood for the affected Swiss region, amplified by
+      antecedent soil saturation from a wet spring.
     </p>
     <p style="font-size:0.78rem;color:#888;line-height:1.5;">
       References: Blöschl et al. (2023) NHESS 23:525–551 ·
@@ -427,62 +426,31 @@
     .openTooltip();
   });
 
-  // SAR pre-flood: map dB range (~-25 to 0) to semi-transparent grayscale
-  function sarColor(values) {
-    const v = values[0];
-    if (v === null || v === undefined || isNaN(v)) return null;
-    const norm = Math.max(0, Math.min(1, (v + 25) / 25));
-    const g = Math.round(norm * 210);
-    return `rgba(${g},${g},${g},0.75)`;
-  }
+  // Pre-rendered PNG overlays (styled server-side by render_overlays.py):
+  // SAR dB mapped to grayscale, flood mask in blue. The rasters were warped to
+  // EPSG:3857 before rendering, so a linear imageOverlay stretch is exact.
+  // Raw GeoTIFFs: see data/MANIFEST.md (GitHub Release assets).
+  // Each swipe side lives in its own pane so the side-by-side control can clip
+  // the whole side (SAR + mask) as one unit.
+  map.createPane("sbs-left");
+  map.createPane("sbs-right");
+  map.getPane("sbs-left").style.zIndex = 350;
+  map.getPane("sbs-right").style.zIndex = 350;
 
-  Promise.all([
-    fetch("data/ch_flood_pre2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
-    fetch("data/ch_flood_post2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
-    fetch("data/ch_flood_mask2021.tif").then(r => r.arrayBuffer()).then(buf => parseGeoraster(buf)),
-  ]).then(([grPre, grPost, grMask]) => {
+  const BOUNDS = [[46.69988, 6.99967], [47.50291, 8.50079]];
 
-    // LEFT side: pre-flood SAR backscatter (grayscale) — June 2021
-    const beforeLayer = new GeoRasterLayer({
-      georaster: grPre,
-      pixelValuesToColorFn: sarColor,
-      resolution: 256,
-      opacity: 1,
-      zIndex: 5,
-    }).addTo(map);
+  // LEFT: pre-flood SAR backscatter (June 2021). RIGHT: post-flood SAR
+  // (July 2021, flooded pixels darker) + detected-flood mask in blue.
+  const beforeLayer = L.imageOverlay("assets/flood2021_pre.png",  BOUNDS, { pane: "sbs-left"  }).addTo(map);
+  const afterLayer  = L.imageOverlay("assets/flood2021_post.png", BOUNDS, { pane: "sbs-right" }).addTo(map);
+  const maskLayer   = L.imageOverlay("assets/flood2021_mask.png", BOUNDS, { pane: "sbs-right" }).addTo(map);
 
-    // RIGHT side: post-flood SAR backscatter (same grayscale scale) — July 2021
-    // Flooded pixels appear darker (lower backscatter = water surface deflecting radar)
-    const afterLayer = new GeoRasterLayer({
-      georaster: grPost,
-      pixelValuesToColorFn: sarColor,
-      resolution: 256,
-      opacity: 1,
-      zIndex: 5,
-    }).addTo(map);
+  L.control.sideBySide(beforeLayer, [afterLayer, maskLayer]).addTo(map);
 
-    // Flood mask overlay on right side — highlights detected water in blue
-    const maskLayer = new GeoRasterLayer({
-      georaster: grMask,
-      pixelValuesToColorFn: v => v[0] === 1 ? "rgba(30,120,220,0.7)" : null,
-      resolution: 256,
-      opacity: 1,
-      zIndex: 10,
-    }).addTo(map);
-
-    // Mask goes on the RIGHT side of the swipe with the post-flood layer —
-    // adding it to the map without registering it here makes it cover both sides
-    L.control.sideBySide(beforeLayer, [afterLayer, maskLayer]).addTo(map);
-
-    // Prevent map pan when dragging the swipe bar
-    const range = document.querySelector('.leaflet-sbs-range');
-    if (range) {
-      range.addEventListener('mousedown',  () => map.dragging.disable());
-      range.addEventListener('touchstart', () => map.dragging.disable(), { passive: true });
-      document.addEventListener('mouseup',  () => map.dragging.enable());
-      document.addEventListener('touchend', () => map.dragging.enable());
-    }
-
+  Promise.all([beforeLayer, afterLayer, maskLayer].map(l => new Promise((res, rej) => {
+    l.once("load", res);
+    l.once("error", () => rej(new Error("overlay failed to load")));
+  }))).then(() => {
     document.getElementById("loading").style.display = "none";
   }).catch(err => {
     document.getElementById("loading").innerHTML =

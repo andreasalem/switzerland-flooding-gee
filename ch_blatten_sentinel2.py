@@ -73,7 +73,9 @@ export_params = dict(
 )
 
 tasks = [
-    ee.batch.Export.image.toDrive(image=before_uint8, description="ch_blatten_before", **export_params),
+    # name carries the window: the original "ch_blatten_before" (April 2025,
+    # over-exposed snow) is superseded — see data/MANIFEST.md
+    ee.batch.Export.image.toDrive(image=before_uint8, description="ch_blatten_before_summer2024", **export_params),
     ee.batch.Export.image.toDrive(image=after_uint8,  description="ch_blatten_after",  **export_params),
 ]
 
