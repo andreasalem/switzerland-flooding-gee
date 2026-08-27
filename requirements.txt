@@ -1,0 +1,2 @@
+# Python 3.12.7 (macOS). Pinned to the versions the exports were produced with.
+earthengine-api==1.7.15
