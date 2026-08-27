@@ -38,7 +38,7 @@ Check: https://code.earthengine.google.com/tasks
 
 import ee
 import os
-ee.Initialize(project=os.environ.get("EE_PROJECT", "flooding"))
+ee.Initialize(project=os.environ.get("EE_PROJECT", "flooding-506820"))
 
 # Small ROI around Brienz — manageable file size at 10 m
 roi = ee.Geometry.Rectangle([7.85, 46.68, 8.20, 46.84])

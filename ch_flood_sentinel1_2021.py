@@ -19,7 +19,7 @@ Check progress: https://code.earthengine.google.com/tasks
 import ee
 import os
 
-ee.Initialize(project=os.environ.get("EE_PROJECT", "flooding"))
+ee.Initialize(project=os.environ.get("EE_PROJECT", "flooding-506820"))
 
 # ── Region of interest: central Switzerland (Aare / Reuss basin) ──────────────
 # Covers cantons Bern, Luzern, Aargau — most affected in July 2021

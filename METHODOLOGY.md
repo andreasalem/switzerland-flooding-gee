@@ -71,7 +71,7 @@ GitHub Releases or a public GCS bucket for CDN-served Cloud-Optimized GeoTIFFs (
 | SRTM DEM | `USGS/SRTMGL1_003` | Slope mask (pending) | 30 m | — |
 
 All processing runs in Google Earth Engine (Python API). Exports go to Google Drive →
-`GEE_exports/`. GEE project: personal noncommercial project `flooding` (overridable via the
+`GEE_exports/`. GEE project: personal noncommercial project `flooding-506820` (overridable via the
 `EE_PROJECT` environment variable). Migrated off the shared `ksm-rch-global-poverty`
 project on 2026-08-27.
 
@@ -373,7 +373,7 @@ that contain 5 and 9 scenes respectively.
    multi-source analysis but loses S2's advantage for narrow floodplain mapping.
 
 6. **GEE project billing**: RESOLVED 2026-08-27 — all scripts now use the personal
-   noncommercial project `flooding` (via `EE_PROJECT` env var, defaulting to `flooding`).
+   noncommercial project `flooding-506820` (via `EE_PROJECT` env var, defaulting to `flooding-506820`).
 
 ---
 
@@ -385,7 +385,7 @@ that contain 5 and 9 scenes respectively.
 | High | Download Brienz TIFFs from Drive → `data/` | — | COMPLETED on GEE side |
 | High | Verify `brienz.html` swipe with real data | `brienz.html` | Run `python -m http.server 8000` |
 | Medium | Fix index.html RIGHT side: load post-flood SAR grayscale instead of blue mask | `index.html` | More scientifically coherent; user sees signal drop |
-| ~~Medium~~ | ~~Switch all scripts to dedicated GEE project~~ | All `.py` files | DONE 2026-08-27: `ksm-rch-global-poverty` → `flooding` (personal, via `EE_PROJECT`) |
+| ~~Medium~~ | ~~Switch all scripts to dedicated GEE project~~ | All `.py` files | DONE 2026-08-27: `ksm-rch-global-poverty` → `flooding-506820` (personal, via `EE_PROJECT`) |
 | Low | Cloud-Optimized GeoTIFF conversion | `data/` | `gdal_translate -of COG`; reduces size 30–50% |
 | Low | Sensitivity analysis: re-run SAR at 2.5 / 3.0 / 4.0 dB | New script | Required for any publication |
 | Low | Compare to Copernicus EMS EMSR519 shapefile | — | Request via Copernicus portal |
